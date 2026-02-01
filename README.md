@@ -51,20 +51,12 @@ T < N × R
 | `N_INV` | `-N⁻¹ mod R` |
 | `R2_MOD_N` | `R² mod N` |
 
-### 3.1 Cách chuẩn bị ngoài module
-
-
-R          = 2^WIDTH
-N_INV      = -N^{-1} mod R
-R2_MOD_N   = (R * R) mod N
-⚠️ Các giá trị này phải tính trước bằng phần mềm (Python/C)
-
 ---
 
 ### 4. Module montgomery_reduce
-Thực hiện: result = T × R⁻¹ mod N
+- Thực hiện: result = T × R⁻¹ mod N
 
-Thuật toán phần cứng:
+- Thuật toán phần cứng:
 
   m = (T mod R) × N_INV mod R
   
@@ -88,21 +80,20 @@ Thuật toán phần cứng:
 ### 5. Module montgomery_mul
 
 
-Tính: result = A × B × R⁻¹ mod N
-Hoạt động: T = A × B
+- Tính: result = A × B × R⁻¹ mod N
+- Hoạt động: T = A × B
 
 ### 6. Module rsa
-Thực hiện: C = M^E mod N bằng square-and-multiply trong miền Montgomery
+- Thực hiện: C = M^E mod N bằng square-and-multiply trong miền Montgomery
 
-Luồng hoạt động RSA:
 
-  Chuyển sang miền Montgomery
+- Chuyển sang miền Montgomery
   
   M̄ = Mont(M × R² mod N)
   
   1̄ = Mont(1 × R² mod N)
 
-Square & Multiply với từng bit của E từ MSB → LSB:
+- Square & Multiply với từng bit của E từ MSB → LSB:
 
   res = res × res
   
@@ -116,7 +107,7 @@ Square & Multiply với từng bit của E từ MSB → LSB:
   
   C = Mont(res × 1)
 
-FSM module RSA:
+- FSM module RSA:
 
   State	Ý nghĩa
   
@@ -153,3 +144,13 @@ FSM module RSA:
 - Output là cipher text
 
 - Các số cần chuẩn bị sẵn (có thể nạp sẵn vào bộ nhớ nếu triển khai SoC): N, N_INV, R2_MOD_N, Các số này được tính toán 1 lần ở phần mềm sau đó sử dụng cho mọi Input
+
+- Cách chuẩn bị ngoài module
+
+R          = 2^WIDTH
+
+N_INV      = -N^{-1} mod R
+
+R2_MOD_N   = (R * R) mod N
+
+Các giá trị này phải tính trước bằng phần mềm (Python/C)
