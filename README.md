@@ -67,102 +67,47 @@ R2_MOD_N   = (R * R) mod N
 ⚠️ Các giá trị này phải tính trước bằng phần mềm (Python/C)
 
 4. Module montgomery_reduce
-4.1 Chức năng
 Thực hiện:
-
 result = T × R⁻¹ mod N
-4.2 Interface
-module montgomery_reduce #(
-    parameter WIDTH = 32
-)(
-    input  wire                   clk,
-    input  wire                   rst,
-    input  wire                   start,
 
-    input  wire [2*WIDTH-1:0]     T,      // T < N*R
-    input  wire [WIDTH-1:0]       N,      // modulus
-    input  wire [WIDTH-1:0]       N_INV,  // -N^{-1} mod R
-
-    output reg  [WIDTH-1:0]       result,
-    output reg                    done
-);
-4.3 Thuật toán phần cứng
+Thuật toán phần cứng
 m = (T mod R) × N_INV mod R
 t = (T + m×N) / R
 if t ≥ N → result = t − N
 else      result = t
-4.4 FSM nội bộ
+
+FSM nội bộ
 State	Chức năng
 IDLE	Chờ start
 CALC_M	Tính m
 CALC_T	Tính t và xuất kết quả
+
 5. Module montgomery_mul
-5.1 Chức năng
 Tính:
-
 result = A × B × R⁻¹ mod N
-5.2 Interface
-module montgomery_mul #(
-    parameter WIDTH = 32
-)(
-    input  wire                   clk,
-    input  wire                   rst,
-    input  wire                   start,
-
-    input  wire [WIDTH-1:0]       A,
-    input  wire [WIDTH-1:0]       B,
-    input  wire [WIDTH-1:0]       N,
-    input  wire [WIDTH-1:0]       N_INV,
-
-    output wire [WIDTH-1:0]       result,
-    output wire                   done
-);
-5.3 Hoạt động
-Nhân thường:
-
+Hoạt động:
 T = A × B
-Gọi montgomery_reduce(T)
+montgomery_reduce(T)
 
-6. Module rsa
-6.1 Chức năng
+7. Module rsa
 Thực hiện:
-
 C = M^E mod N
 bằng square-and-multiply trong miền Montgomery
 
-6.2 Interface
-module rsa #(
-    parameter WIDTH = 32,
-    parameter E_BITS = 32
-)(
-    input  wire                   clk,
-    input  wire                   rst,
-    input  wire                   start,
-
-    input  wire [WIDTH-1:0]       M,
-    input  wire [E_BITS-1:0]      E,
-    input  wire [WIDTH-1:0]       N,
-    input  wire [WIDTH-1:0]       N_INV,
-    input  wire [WIDTH-1:0]       R2_MOD_N,
-
-    output reg  [WIDTH-1:0]       C,
-    output reg                    done
-);
-7. Luồng hoạt động RSA
-7.1 Chuyển sang miền Montgomery
+Luồng hoạt động RSA:
+Chuyển sang miền Montgomery
 M̄ = Mont(M × R² mod N)
 1̄ = Mont(1 × R² mod N)
-7.2 Square & Multiply
+Square & Multiply
 Với từng bit của E từ MSB → LSB:
-
 res = res × res
 if E[i] == 1:
     res = res × M̄
-(Tất cả đều là Montgomery multiply)
-
-7.3 Chuyển về miền thường
+(Montgomery multiply)
+Chuyển về miền thường
 C = Mont(res × 1)
-8. FSM module RSA
+
+FSM module RSA:
 State	Ý nghĩa
 IDLE	Chờ start
 CONV_M	Đưa M vào Montgomery
@@ -172,18 +117,14 @@ SQUARE_WAIT	Chờ bình phương
 MULT_WAIT	Chờ nhân
 REDUCE_START	Thoát Montgomery
 REDUCE_WAIT	Xuất kết quả
-9. Lưu ý quan trọng
+
+8. Lưu ý quan trọng
 N bắt buộc là số lẻ
-
 mont_start chỉ được bật 1 chu kỳ
-
 FSM phải đợi mont_done
-
 Không được giữ start = 1 liên tục → sẽ bị loop vô hạn
 
-10. Tóm tắt
-Thành phần	Vai trò
-montgomery_reduce	Core modulo
-montgomery_mul	Nhân modulo
-rsa	Điều khiển exponentiation
-N, N_INV, R2_MOD_N	Chuẩn bị ngoài module
+9. Sử dụng
+Input một chuỗi M
+Output là cipher text
+Các số cần chuẩn bị sẵn (có thể nạp sẵn vào bộ nhớ nếu triển khai SoC): N, N_INV, R2_MOD_N, Các số này được tính toán 1 lần ở phần mềm sau đó sử dụng cho mọi Input
