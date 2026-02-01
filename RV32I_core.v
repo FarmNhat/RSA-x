@@ -6,7 +6,7 @@
 
 
 `include "cla.v" 
-`include "wishbone.v" 
+
 
 module RegFile (
     input          [        4:0] rd,
@@ -147,33 +147,33 @@ module DatapathSingleCycle (
   // DIV (100) / REM (110) -> Signed
   // DIVU (101) / REMU (111) -> Unsigned
   // Bit 0 của funct3 quyết định dấu (0: Signed, 1: Unsigned)
-  wire is_div_instruction = (inst_opcode == OpRegReg) && (inst_funct7 == 7'b0000001);
-  wire div_is_signed      = is_div_instruction && (~inst_funct3[0]); 
+  // wire is_div_instruction = (inst_opcode == OpRegReg) && (inst_funct7 == 7'b0000001);
+  // wire div_is_signed      = is_div_instruction && (~inst_funct3[0]); 
 
-  // 2. Chuẩn bị dữ liệu đầu vào (Lấy trị tuyệt đối nếu là phép chia có dấu)
-  wire op1_is_neg = div_is_signed && rs1_data[31];
-  wire op2_is_neg = div_is_signed && rs2_data[31];
+  // // 2. Chuẩn bị dữ liệu đầu vào (Lấy trị tuyệt đối nếu là phép chia có dấu)
+  // wire op1_is_neg = div_is_signed && rs1_data[31];
+  // wire op2_is_neg = div_is_signed && rs2_data[31];
 
-  wire [31:0] div_in_a = (op1_is_neg) ? -rs1_data : rs1_data;
-  wire [31:0] div_in_b = (op2_is_neg) ? -rs2_data : rs2_data;
+  // wire [31:0] div_in_a = (op1_is_neg) ? -rs1_data : rs1_data;
+  // wire [31:0] div_in_b = (op2_is_neg) ? -rs2_data : rs2_data;
 
-  wire [31:0] div_out_q_raw;
-  wire [31:0] div_out_r_raw;
+  // wire [31:0] div_out_q_raw;
+  // wire [31:0] div_out_r_raw;
 
-  // 3. G�?i Module DIV
-  div divider_inst (
-      .a(div_in_a),
-      .b(div_in_b),
-      .q(div_out_q_raw),
-      .r(div_out_r_raw)
-  );
+  // // 3. G�?i Module DIV
+  // div divider_inst (
+  //     .a(div_in_a),
+  //     .b(div_in_b),
+  //     .q(div_out_q_raw),
+  //     .r(div_out_r_raw)
+  // );
 
-  // 4. Xử lý kết quả đầu ra (�?ổi dấu lại nếu cần)
-  // Quy tắc RISC-V:
-  // Quotient:  Dấu = Sign(A) XOR Sign(B)
-  // Remainder: Dấu = Sign(A)
-  wire [31:0] div_final_q = ((op1_is_neg ^ op2_is_neg)) ? -div_out_q_raw : div_out_q_raw;
-  wire [31:0] div_final_r = (op1_is_neg)                ? -div_out_r_raw : div_out_r_raw;
+  // // 4. Xử lý kết quả đầu ra (�?ổi dấu lại nếu cần)
+  // // Quy tắc RISC-V:
+  // // Quotient:  Dấu = Sign(A) XOR Sign(B)
+  // // Remainder: Dấu = Sign(A)
+  // wire [31:0] div_final_q = ((op1_is_neg ^ op2_is_neg)) ? -div_out_q_raw : div_out_q_raw;
+  // wire [31:0] div_final_r = (op1_is_neg)                ? -div_out_r_raw : div_out_r_raw;
 
   // ==========================================================================
 
@@ -301,21 +301,21 @@ module DatapathSingleCycle (
           end
           3'b001: begin 
             //if(inst_funct7 == 7'd1) wb_data = (rs1_data * rs2_data) >> 32; // MULH
-            else                    wb_data = rs1_data << rs2_data[4:0];   // SLL
+                              wb_data = rs1_data << rs2_data[4:0];   // SLL
           end
           3'b010: begin 
-            i//f (inst_funct7 == 7'd1) wb_data = ($signed(rs1_data) * $signed(rs2_data)) >> 32; // MULHSU
-            else                     wb_data = ($signed(rs1_data) < $signed(rs2_data)) ? 32'd1 : 32'd0; // SLT
+            //if (inst_funct7 == 7'd1) wb_data = ($signed(rs1_data) * $signed(rs2_data)) >> 32; // MULHSU
+                               wb_data = ($signed(rs1_data) < $signed(rs2_data)) ? 32'd1 : 32'd0; // SLT
           end
           3'b011: begin 
             //if(inst_funct7 == 7'd1) wb_data = ($signed(rs1_data) * rs2_data) >> 32; // MULHU
-            else                    wb_data = (rs1_data < rs2_data) ? 32'd1 : 32'd0; // SLTU
+                           wb_data = (rs1_data < rs2_data) ? 32'd1 : 32'd0; // SLTU
           end
           
           // --- UPDATED DIV/REM LOGIC ---
           3'b100: begin 
             //if(inst_funct7 == 7'd1) wb_data = div_final_q; // DIV
-            else                    wb_data = rs1_data ^ rs2_data; // XOR
+                           wb_data = rs1_data ^ rs2_data; // XOR
           end
           3'b101: begin 
             if(inst_funct7 == 7'd0)        wb_data = rs1_data >> rs2_data[4:0]; // SRL
@@ -324,11 +324,11 @@ module DatapathSingleCycle (
           end
           3'b110: begin 
             //if(inst_funct7 == 7'd1) wb_data = div_final_r; // REM
-            else                    wb_data = rs1_data | rs2_data; // OR
+                        wb_data = rs1_data | rs2_data; // OR
           end
           3'b111: begin 
             //if(inst_funct7 == 7'd1) wb_data = div_final_r; // REMU
-            else                    wb_data = rs1_data & rs2_data; // AND
+                       wb_data = rs1_data & rs2_data; // AND
           end
           // -----------------------------
           
@@ -354,128 +354,3 @@ module DatapathSingleCycle (
 
 endmodule
 
-// ============================================================================
-// 5. PROCESSOR TOP LEVEL
-// ============================================================================
-module Processor (
-    input  clock_proc,
-    input  clock_mem,
-    input  rst,
-    output halt
-);
-
-  wire [`REG_SIZE:0] pc_to_imem, inst_from_imem, mem_data_addr, mem_data_loaded_value, mem_data_to_write;
-  wire [        3:0] mem_data_we;
-  wire rsa_en, mem_en;
-
-  MemorySingleCycle #(
-      .NUM_WORDS(8192)
-  ) memory (
-    .mem_en              (mem_en),
-    .rst                 (rst),
-    .clock_mem           (clock_mem),
-    .addr_to_dmem        (mem_data_addr),
-    .load_data_from_dmem (mem_data_loaded_value),
-    .store_data_to_dmem  (mem_data_to_write),
-    .store_we_to_dmem    (mem_data_we)
-  );
-
-  wb_rsa #(
-      .WIDTH(32), .E_BITS(32)
-  ) rsa_bus (
-    .clk          (clock_mem),
-    .rst          (rst),
-    .wb_adr_i     (mem_data_addr),
-    .wb_dat_i     (mem_data_to_write),
-    .wb_dat_o     (mem_data_loaded_value),
-    .wb_we_i      (|mem_data_we),
-    .rsa_en       (rsa_en),
-    .wb_ack_o     ()
-  );
-
-  InstMemory imem (
-    .rst            (rst),
-    .clock_mem      (clock_mem),
-    .pc_to_imem     (pc_to_imem),
-    .inst_from_imem (inst_from_imem)
-  );
-
-  DatapathSingleCycle datapath (
-    .clk                 (clock_proc),
-    .rst                 (rst),
-    .pc_to_imem          (pc_to_imem),
-    .inst_from_imem      (inst_from_imem),
-    .addr_to_dmem        (mem_data_addr),
-    .store_data_to_dmem  (mem_data_to_write),
-    .store_we_to_dmem    (mem_data_we),
-    .load_data_from_dmem (mem_data_loaded_value),
-    .halt                (halt),
-    .rsa_en              (rsa_en),
-    .mem_en              (mem_en)
-  );
-
-
-
-endmodule
-
-// ============================================================================
-// 6. INSTRUCTION  MEMORY
-// ============================================================================
-
-module InstMemory (
-    input                    rst,
-    input                    clock_mem,
-    input      [`REG_SIZE:0] pc_to_imem,
-    output reg [`REG_SIZE:0] inst_from_imem,
-);
-
-  reg [`REG_SIZE:0] imem_array[0:511];
-
-  initial begin
-    $readmemh("inst_mem.hex", imem_array);
-  end
-
-  localparam AddrMsb = $clog2(512) + 1;
-  localparam AddrLsb = 2;
-
-  always @(posedge clock_mem) begin
-    inst_from_imem <= mem_array[{pc_to_imem[AddrMsb:AddrLsb]}];
-  end
-
-endmodule
-
-// ============================================================================
-// 7. MEMORY
-// ============================================================================
-module MemorySingleCycle #(
-    parameter NUM_WORDS = 512
-) (
-    input                    mem_en,
-    input                    rst,
-    input                    clock_mem,
-    input      [`REG_SIZE:0] addr_to_dmem,
-    input      [`REG_SIZE:0] store_data_to_dmem,
-    input      [        3:0] store_we_to_dmem
-    output reg [`REG_SIZE:0] load_data_from_dmem,
-);
-
-  reg [`REG_SIZE:0] mem_array[0:NUM_WORDS-1];
-
-  // initial begin
-  //   $readmemh("mem_initial_contents.hex", mem_array);
-  // end
-
-  localparam AddrMsb = $clog2(NUM_WORDS) + 1;
-  localparam AddrLsb = 2;
-
-
-  always @(negedge clock_mem) begin
-    if (store_we_to_dmem[0]) mem_array[addr_to_dmem[AddrMsb:AddrLsb]][7:0]   <= store_data_to_dmem[7:0];
-    if (store_we_to_dmem[1]) mem_array[addr_to_dmem[AddrMsb:AddrLsb]][15:8]  <= store_data_to_dmem[15:8];
-    if (store_we_to_dmem[2]) mem_array[addr_to_dmem[AddrMsb:AddrLsb]][23:16] <= store_data_to_dmem[23:16];
-    if (store_we_to_dmem[3]) mem_array[addr_to_dmem[AddrMsb:AddrLsb]][31:24] <= store_data_to_dmem[31:24];
-    
-    load_data_from_dmem <= mem_array[{addr_to_dmem[AddrMsb:AddrLsb]}];
-    
-  end
-endmodule
