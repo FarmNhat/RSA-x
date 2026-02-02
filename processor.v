@@ -1,6 +1,3 @@
-// ============================================================================
-// PROCESSOR TOP LEVEL
-// ============================================================================
 
 `include "rsa.v" 
 `include "RV32I_core.v"
@@ -67,9 +64,7 @@ module Processor (
 
 endmodule
 
-// ============================================================================
-// 6. INSTRUCTION  MEMORY
-// ============================================================================
+
 
 module InstMemory (
     input                    rst,
@@ -80,9 +75,9 @@ module InstMemory (
 
   reg [`REG_SIZE:0] imem_array[0:511];
 
-  initial begin
-    $readmemh("inst_mem.hex", imem_array);
-  end
+  // initial begin
+  //   $readmemh("inst_mem.hex", imem_array);
+  // end
 
   localparam AddrMsb = $clog2(512) + 1;
   localparam AddrLsb = 2;
@@ -93,9 +88,6 @@ module InstMemory (
 
 endmodule
 
-// ============================================================================
-// 7. MEMORY
-// ============================================================================
 module MemorySingleCycle #(
     parameter NUM_WORDS = 512
 ) (
@@ -111,7 +103,7 @@ module MemorySingleCycle #(
   reg [`REG_SIZE:0] mem_array[0:NUM_WORDS-1];
 
   // initial begin
-  //   $readmemh("mem_initial_contents.hex", mem_array);
+  //   $readmemh("mem.hex", mem_array);
   // end
 
   localparam AddrMsb = $clog2(NUM_WORDS) + 1;
